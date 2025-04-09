@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import {FiHome,FiLogOut, FiBarChart2, FiSettings, FiUsers } from 'react-icons/fi'
-import { supabase } from '../../services/supabaseClient';
+import { supabase } from '../../../backend/services/supabaseClient';
 
 const Sidebar = () => {
      const navigate = useNavigate();

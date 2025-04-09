@@ -1,6 +1,7 @@
 import React from 'react';
 
 const Header = () => {
+  
   return (
     <header className="bg-white shadow p-4 flex items-center justify-between">
       {/* Search Bar */}

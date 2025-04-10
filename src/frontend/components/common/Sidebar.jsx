@@ -21,7 +21,7 @@ const Sidebar = () => {
     <div className='w-64 bg-[#60A5FA] text-white flex flex-col p-4'>
         {/* Logo */}
         <div className="mb-8">
-            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=40&h=40&fit=crop"
+            <img  src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=40&h=40&fit=crop"
           alt="Logo"
           className="w-10 h-10 rounded-md" 
           />
@@ -67,7 +67,7 @@ const Sidebar = () => {
         {/* Logout */}
         <button
           onClick={handleLogout}
-        className='mt-auto flex items-center space-x-2 bg-[#da5c5c] p-2 rounded hover:bg-red-500'>
+        className='mt-auto flex items-center space-x-2 bg-red-400 p-2 rounded hover:bg-red-500'>
             <FiLogOut />
             <span>Logout</span>
         </button>

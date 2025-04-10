@@ -3,6 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// Initialize Supabase client first
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 const createUserProfile = async () => {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
 
@@ -13,7 +16,7 @@ const createUserProfile = async () => {
 
   const { error: insertError } = await supabase.from('profiles').insert({
     id: user.id,
-    username: 'new_user_' + Math.floor(Math.random() * 1000),
+    name: 'new_user_' + Math.floor(Math.random() * 1000),
     email: user.email,
   });
 
@@ -24,8 +27,15 @@ const createUserProfile = async () => {
   }
 };
 
-// Export the Supabase client
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const uploadImage = async (filePath, file, bucketName) => {
+  const { data, error } = await supabase.storage
+    .from(bucketName)
+    .upload(filePath, file);
+  if (error) throw error;
+  return { data, error };
+};
 
-// Export the createUserProfile function if needed elsewhere
-export { createUserProfile };
+// Export everything needed
+export const auth = supabase.auth;
+export const db = supabase;
+export { supabase, createUserProfile };

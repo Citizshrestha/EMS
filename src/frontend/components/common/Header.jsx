@@ -5,8 +5,8 @@ const Header = () => {
   const fileInputRef = useRef(null);
   const [userName, setUserName] = useState('Admin User');
   const [userRole, setUserRole] = useState('Employee');
+  const [avatarUrl, setAvatarUrl] = useState('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=faces'); // Fallback URL
   const [loading, setLoading] = useState(true);
-  const [avatarUrl,setAvatarUrl] = useState("https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=faces")
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -18,7 +18,7 @@ const Header = () => {
 
         const { data, error } = await db
           .from('profiles')
-          .select('name, role')
+          .select('name, role, avatarurl') // Include avatarurl
           .eq('id', user.id)
           .single();
 
@@ -26,6 +26,7 @@ const Header = () => {
         if (data) {
           if (data.name) setUserName(data.name);
           if (data.role) setUserRole(data.role);
+          if (data.avatarurl) setAvatarUrl(data.avatarurl);
         }
       } catch (error) {
         console.error('Error fetching user profile:', error.message);
@@ -62,7 +63,6 @@ const Header = () => {
       }
       console.log('Upload successful, data:', data);
 
-      // Fix: Correctly destructure publicUrl from data
       const { data: { publicUrl } } = db.storage.from('avatars').getPublicUrl(filename);
       console.log('Public URL:', publicUrl);
 
@@ -70,12 +70,12 @@ const Header = () => {
 
       const { error: updateError } = await db
         .from('profiles')
-        .update({ avatarurl: publicUrl })
+        .update({ avatarurl: publicUrl }) 
         .eq('id', user.id);
 
       if (updateError) throw new Error(`Update failed: ${updateError.message}`);
 
-      setAvatarUrl(publicUrl)
+      setAvatarUrl(publicUrl);
       console.log('Profile image updated successfully');
     } catch (error) {
       console.error('Error uploading image:', error.message);
@@ -94,7 +94,7 @@ const Header = () => {
       <div className="flex items-center space-x-3">
         <img
           onClick={handleProfileImageClick}
-          src={avatarUrl}
+          src={avatarUrl} 
           alt="User Avatar"
           className="w-10 h-10 rounded-full cursor-pointer"
         />

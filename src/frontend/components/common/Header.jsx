@@ -1,41 +1,30 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { auth, db, uploadImage } from "../../../backend/services/supabaseClient";
+import {fetchUserProfile} from '../../utils/userProfile'
 
 const Header = () => {
   const fileInputRef = useRef(null);
   const [userName, setUserName] = useState('Admin User');
   const [userRole, setUserRole] = useState('Employee');
-  const [avatarUrl, setAvatarUrl] = useState('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=faces'); // Fallback URL
+  const [avatarUrl, setAvatarUrl] = useState(); 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const loadUserProfile = async () => {
       try {
-        const { data: { user }, error: userError } = await auth.getUser();
-        if (userError || !user) {
-          throw new Error("No authenticated user found");
-        }
-
-        const { data, error } = await db
-          .from('profiles')
-          .select('name, role, avatarurl') // Include avatarurl
-          .eq('id', user.id)
-          .single();
-
-        if (error) throw error;
-        if (data) {
-          if (data.name) setUserName(data.name);
-          if (data.role) setUserRole(data.role);
-          if (data.avatarurl) setAvatarUrl(data.avatarurl);
-        }
+         const data = await fetchUserProfile();
+          if (data){
+             if (data.name) setUserName(data.name)
+             if (data.role) setUserRole(data.role)
+             if (data.avatarurl) setAvatarUrl(data.avatarurl)
+          }
       } catch (error) {
-        console.error('Error fetching user profile:', error.message);
-      } finally {
-        setLoading(false);
+        console.error('Error in fetching or loading user',error)
+      } finally{
+        setLoading(false)
       }
     };
-
-    fetchUserProfile();
+    loadUserProfile();
   }, []);
 
   const handleProfileImageClick = () => {
@@ -94,7 +83,7 @@ const Header = () => {
       <div className="flex items-center space-x-3">
         <img
           onClick={handleProfileImageClick}
-          src={avatarUrl} 
+          src={avatarUrl } 
           alt="User Avatar"
           className="w-10 h-10 rounded-full cursor-pointer"
         />

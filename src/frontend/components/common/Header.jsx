@@ -6,6 +6,7 @@ const Header = () => {
   const [userName, setUserName] = useState('Admin User');
   const [userRole, setUserRole] = useState('Employee');
   const [loading, setLoading] = useState(true);
+  const [avatarUrl,setAvatarUrl] = useState("https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=faces")
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -69,10 +70,12 @@ const Header = () => {
 
       const { error: updateError } = await db
         .from('profiles')
-        .update({ avatar_url: publicUrl })
+        .update({ avatarurl: publicUrl })
         .eq('id', user.id);
 
       if (updateError) throw new Error(`Update failed: ${updateError.message}`);
+
+      setAvatarUrl(publicUrl)
       console.log('Profile image updated successfully');
     } catch (error) {
       console.error('Error uploading image:', error.message);
@@ -91,7 +94,7 @@ const Header = () => {
       <div className="flex items-center space-x-3">
         <img
           onClick={handleProfileImageClick}
-          src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=faces"
+          src={avatarUrl}
           alt="User Avatar"
           className="w-10 h-10 rounded-full cursor-pointer"
         />

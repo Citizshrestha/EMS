@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { auth, db, uploadImage } from "../../../backend/services/supabaseClient";
-import {fetchUserProfile} from '../../utils/userProfile'
+import {fetchUserProfile} from '@utils/userProfile'
 
 const Header = () => {
   const fileInputRef = useRef(null);
@@ -40,8 +40,8 @@ const Header = () => {
       if (userError) throw new Error(`Error fetching user: ${userError.message}`);
       if (!user) throw new Error("No authenticated user found");
 
-      const fileExt = file.name.split('.').pop();
-      const filename = `${user.id}/${Date.now()}.${fileExt}`;
+      const fileExtract = file.name.split('.').pop();
+      const filename = `${user.id}/${Date.now()}.${fileExtract}`;
 
       console.log('Uploading file:', filename);
 
@@ -52,7 +52,10 @@ const Header = () => {
       }
       console.log('Upload successful, data:', data);
 
-      const { data: { publicUrl } } = db.storage.from('avatars').getPublicUrl(filename);
+      const { data: { publicUrl } } = db.storage
+                                      .from('avatars')
+                                      .getPublicUrl(filename);
+
       console.log('Public URL:', publicUrl);
 
       if (!publicUrl) throw new Error('Failed to generate public URL');

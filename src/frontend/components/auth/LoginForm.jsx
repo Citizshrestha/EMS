@@ -8,6 +8,7 @@ const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  
 
   const submitHandler = (e) => {
     e.preventDefault();
@@ -16,10 +17,7 @@ const LoginForm = () => {
   };
 
   const handleLogin = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { data, error } = await supabase.auth.signInWithPassword({email,password,});
 
     if (error) {
       console.error('Login error: ', error.message);

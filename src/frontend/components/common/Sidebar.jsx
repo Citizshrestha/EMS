@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiHome, FiLogOut, FiBarChart2, FiSettings, FiUsers } from 'react-icons/fi';
-import { auth } from '../../../backend/services/supabaseClient'; 
-import { fetchUserProfile } from '../../utils/userProfile';
+import { auth } from '@backend/services/supabaseClient'; 
+import { fetchUserProfile } from '@utils/userProfile';
 
 const Sidebar = () => {
   const navigate = useNavigate();

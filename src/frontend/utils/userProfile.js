@@ -10,7 +10,7 @@ import { auth, db } from "../../backend/services/supabaseClient";
               }
 
               const {data, err} = await db
-              .from('profiles')
+                .from('profiles')
                 .select('name,role,avatarurl')
                 .eq('id',user.id)
                 .single()
@@ -22,6 +22,6 @@ import { auth, db } from "../../backend/services/supabaseClient";
     } catch (error) {
         console.error("Error fetching user data",error)
     }
-   }
+  }
 
 

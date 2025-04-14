@@ -37,7 +37,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="w-64 bg-[#60A5FA] text-white flex flex-col p-4">
+    <div className="w-64 min-h-[100vh] bg-[#60A5FA] text-white flex flex-col p-4">
       {/* Logo */}
       <div className="mb-8">
         <img
@@ -63,20 +63,20 @@ const Sidebar = () => {
           { userRole === 'admin' ? (
             <li>
               <Link
-                to="/employee-dashboard"
+                to="/employees"
                 className="flex items-center space-x-2 hover:bg-blue-400 p-2 rounded"
               >
                 <FiUsers />
                 <span>Employees</span>
               </Link>
             </li>
-          ) : (
+          ) : ( 
              <span></span>
           )}
 
           <li>
             <Link
-              to="/reports"
+              to="/report"
               className="flex items-center space-x-2 hover:bg-blue-400 p-2 rounded"
             >
               <FiBarChart2 />
@@ -99,7 +99,7 @@ const Sidebar = () => {
       {/* Logout */}
       <button
         onClick={handleLogout}
-        className="mt-auto flex items-center space-x-2 bg-red-400 p-2 rounded hover:bg-red-500"
+        className="mb-8 flex items-center space-x-2 bg-red-400 p-2 rounded hover:bg-red-500"
       >
         <FiLogOut />
         <span>Logout</span>

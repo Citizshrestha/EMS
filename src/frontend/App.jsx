@@ -9,9 +9,11 @@ import EmployeeList from './components/Employees/EmployeeList';
 import Report from './components/Report';
 import Setting from './components/Setting';
 import ProtectedRoute from './components/protectedRoute/ProtectedRoute';
-import Layout from './components/common/Layout'; // new layout import
+import Layout from './components/common/Layout';
 
 const App = () => {
+ 
+
   return (
     <BrowserRouter>
       <Routes>
@@ -31,7 +33,7 @@ const App = () => {
           <Route
             path="/employee-dashboard"
             element={
-              <ProtectedRoute allowedRoles={['employee', 'admin']}>
+              <ProtectedRoute allowNonAdmin={true} allowedRoles={['admin']}>
                 <EmployeeDashboard />
               </ProtectedRoute>
             }
@@ -47,15 +49,15 @@ const App = () => {
           <Route
             path="/report"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowNonAdmin={true} allowedRoles={['admin']}>
                 <Report />
               </ProtectedRoute>
             }
           />
-          <Route
+        <Route
             path="/settings"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowNonAdmin={true} allowedRoles={['admin']}>
                 <Setting />
               </ProtectedRoute>
             }

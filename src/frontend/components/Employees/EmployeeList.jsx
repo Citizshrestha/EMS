@@ -7,6 +7,7 @@ import {
 
 const EmployeeList = () => {
   const [employees, setEmployees] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,20 +19,20 @@ const EmployeeList = () => {
     password: "",
   });
   const [formError, setFormError] = useState(null);
-  const [editingRoleId, setEditingRoleId] = useState(null); 
-  const [newRole, setNewRole] = useState(""); 
+  const [editingRoleId, setEditingRoleId] = useState(null);
+  const [newRole, setNewRole] = useState("");
+  const [hoveredEmployeeId, setHoveredEmployeeId] = useState(null);
+  const [selectedTaskId, setSelectedTaskId] = useState("");
 
-  // Fetch employees on component mount 
+  // Fetch employees and tasks on component mount
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
         setLoading(true);
-        const { data, dataFetchError } = await supabase
+        const { data, error: dataFetchError } = await supabase
           .from("profiles")
           .select("id, role, name, email")
           .neq("role", "admin");
-
-        console.log("Raw data from Supabase:", data);
 
         if (dataFetchError) {
           throw dataFetchError;
@@ -46,14 +47,36 @@ const EmployeeList = () => {
             typeof emp.name === "string" &&
             emp.name.trim() !== "" &&
             emp.role !== "admin"
-            
         );
 
-        console.log("Filtered employees:", validEmployees);
         setEmployees(validEmployees);
+
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) {
+          throw userError;
+        }
+        if (!user) {
+          throw new Error("User not authenticated");
+        }
+
+        // Fixed: Changed SupabaseClient to supabase
+        const { data: taskData, error: taskError } = await supabase
+          .from("tasks")
+          .select("id, title")
+          .eq("user_id", user.id)
+          .is("assigned_to", null)
+          .eq("status", "pending");
+
+        if (taskError) {
+          throw taskError;
+        }
+
+        setTasks(taskData || []);
       } catch (error) {
         setError("Failed to fetch employees: " + error.message);
-        console.error("Error fetching employees:", error);
+        // Fixed: Reset state on error to avoid stale data
+        setEmployees([]);
+        setTasks([]);
       } finally {
         setLoading(false);
       }
@@ -72,7 +95,6 @@ const EmployeeList = () => {
           throw error;
         }
 
-        console.log("Successfully deleted employee with ID: ", id);
         const { data, error: fetchError } = await supabase
           .from("profiles")
           .select("id, role, name, email")
@@ -83,9 +105,46 @@ const EmployeeList = () => {
         }
         setEmployees(data || []);
       } catch (err) {
-        console.error("Error deleting employee", err);
         alert("Failed to delete employee: " + err.message);
       }
+    }
+  };
+
+  // Handle Assign Tasks
+  const handleAssignTask = async (empName, taskId) => {
+    try {
+      const { data, error } = await supabase
+        .from("tasks")
+        .update({ assigned_to: empName, status: "pending" })
+        .eq("id", taskId)
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data || data.length === 0) {
+        throw new Error("Task Assignment failed: No data returned");
+      }
+
+      // Fixed: Refetch tasks to ensure state consistency
+      const { data: taskData, error: taskError } = await supabase
+        .from("tasks")
+        .select("id, title")
+        .eq("user_id", (await supabase.auth.getUser()).data.user.id)
+        .is("assigned_to", null)
+        .eq("status", "pending");
+
+      if (taskError) {
+        throw taskError;
+      }
+
+      setTasks(taskData || []);
+      setHoveredEmployeeId(null);
+      setSelectedTaskId("");
+      alert("Task assigned successfully");
+    } catch (err) {
+      alert("Error assigning task: " + err.message);
     }
   };
 
@@ -118,7 +177,7 @@ const EmployeeList = () => {
   // Handle inline role editing
   const handleEditRole = (employee) => {
     setEditingRoleId(employee.id);
-    setNewRole(employee.role); 
+    setNewRole(employee.role);
   };
 
   const handleSaveRole = async (id) => {
@@ -128,7 +187,6 @@ const EmployeeList = () => {
     }
 
     try {
-     
       const { data, error } = await supabaseAdmin
         .from("profiles")
         .update({ role: newRole.trim() })
@@ -136,7 +194,6 @@ const EmployeeList = () => {
         .select();
 
       if (error) {
-        console.error("Error updating role:", error);
         throw error;
       }
 
@@ -144,11 +201,6 @@ const EmployeeList = () => {
         throw new Error("No rows updated: Employee not found or update failed");
       }
 
-      if (data.length > 1) {
-        throw new Error("Multiple rows updated: Expected exactly one row");
-      }
-
-      console.log("Role updated successfully:", data[0]);
       setEmployees((prev) =>
         prev.map((emp) =>
           emp.id === id ? { ...emp, role: newRole.trim() } : emp
@@ -157,12 +209,11 @@ const EmployeeList = () => {
       setEditingRoleId(null);
       setNewRole("");
     } catch (err) {
-      console.error("Error updating role:", err);
       alert("Failed to update role: " + err.message);
     }
   };
 
-  // Handle form submission for adding  or editing an employee
+  // Handle form submission for adding or editing an employee
   const handleFormSubmit = async (e) => {
     e.preventDefault();
 
@@ -176,13 +227,11 @@ const EmployeeList = () => {
       return;
     }
 
-    // Validate password for  new employees (not required when editing)
     if (!formData.id && !formData.password) {
       setFormError("Password is required for new employees");
       return;
     }
 
-    // Basic password  validation
     if (!formData.id && formData.password.length < 8) {
       setFormError("Password must be at least 8 characters long");
       return;
@@ -190,17 +239,12 @@ const EmployeeList = () => {
 
     try {
       if (formData.id) {
-        // Edit existing employee
-        console.log("Updating employee with ID:", formData.id);
-
-        // Verify the employee exists in the profiles table
         const { data: existingEmployee, error: fetchError } = await supabase
           .from("profiles")
           .select("id, email")
           .eq("id", formData.id);
 
         if (fetchError) {
-          console.error("Error checking employee existence:", fetchError);
           throw fetchError;
         }
 
@@ -208,33 +252,19 @@ const EmployeeList = () => {
           throw new Error("Employee not found in profiles table");
         }
 
-        // Get the authenticated user's session to check their role
-        const { data: { user }, error: userError, } = await supabase.auth.getUser();
-
-        if (userError) {
-          console.error("Error fetching authenticated user:", userError);
-          throw userError;
-        }
-
-        console.log("Authenticated user:", user);
-
         const oldEmail = existingEmployee[0].email;
         const emailChanged = oldEmail !== formData.email;
 
         if (emailChanged) {
-          const { data: authData, error: authError } =
-            await supabaseAdmin.auth.admin.updateUserById(formData.id, {
-              email: formData.email,
-            });
+          const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(formData.id, {
+            email: formData.email,
+          });
 
           if (authError) {
-            console.error("Error updating email in auth.users:", authError);
             throw authError;
           }
-          console.log("Email updated in auth.users:", authData);
         }
 
-        // Perform the update using supabaseAdmin to bypass RLS
         const { data, error } = await supabaseAdmin
           .from("profiles")
           .update({
@@ -246,23 +276,13 @@ const EmployeeList = () => {
           .select();
 
         if (error) {
-          console.error("Update error:", error);
           throw error;
         }
 
         if (!data || data.length === 0) {
-          throw new Error(
-            "No rows updated: Employee not found or update failed"
-          );
+          throw new Error("No rows updated: Employee not found or update failed");
         }
 
-        if (data.length > 1) {
-          throw new Error("Multiple rows updated: Expected exactly one row");
-        }
-
-        const updatedEmployee = data[0];
-        console.log("Update successful, data:", updatedEmployee);
-        // Update the employees state with edited data
         setEmployees((prev) =>
           prev.map((emp) =>
             emp.id === formData.id
@@ -282,20 +302,15 @@ const EmployeeList = () => {
           );
         }
       } else {
-        // Add new employee
-        // Create a new user in auth.users with the provided password
-        const { data: userData, error: userError } = await supabase.auth.signUp(
-          {
-            email: formData.email,
-            password: formData.password,
-            options: {
-              emailRedirectTo: "http://your-app-url/login",
-            },
-          }
-        );
+        const { data: userData, error: userError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            emailRedirectTo: "http://your-app-url/login",
+          },
+        });
 
         if (userError) {
-          console.error("User creation error:", userError);
           throw userError;
         }
 
@@ -304,23 +319,15 @@ const EmployeeList = () => {
         }
 
         const newUserId = userData.user.id;
-        console.log("New user created with ID:", newUserId);
-        console.log("New user data:", userData);
 
-        // Auto-confirm the email using supabaseAdmin
-        const { data: confirmData, error: confirmError } =
-          await supabaseAdmin.auth.admin.updateUserById(newUserId, {
-            email_confirmed_at: new Date().toISOString(),
-          });
+        const { error: confirmError } = await supabaseAdmin.auth.admin.updateUserById(newUserId, {
+          email_confirmed_at: new Date().toISOString(),
+        });
 
         if (confirmError) {
-          console.error("Error confirming email:", confirmError);
           throw confirmError;
         }
 
-        console.log("Email confirmed for new user:", confirmData);
-
-        // Insert the new employee into the profiles table
         const { data: insertedData, error: insertError } = await supabase
           .from("profiles")
           .insert({
@@ -332,7 +339,6 @@ const EmployeeList = () => {
           .select();
 
         if (insertError) {
-          console.error("Profile insert error:", insertError);
           throw insertError;
         }
 
@@ -340,19 +346,10 @@ const EmployeeList = () => {
           throw new Error("No rows inserted: Insert operation failed");
         }
 
-        if (insertedData.length > 1) {
-          throw new Error("Multiple rows inserted: Expected exactly one row");
-        }
-
-        const newUser = insertedData[0];
-        console.log("Profile insert successful, data:", newUser);
-
-        setEmployees((prev) => [...prev, newUser]);
-        console.log("Successfully added new employee: ", newUser);
+        setEmployees((prev) => [...prev, insertedData[0]]);
       }
       setIsModalOpen(false);
     } catch (err) {
-      console.error("Error saving employee:", err);
       setFormError("Failed to save employee: " + err.message);
     }
   };
@@ -361,7 +358,7 @@ const EmployeeList = () => {
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setFormError(null); 
+    setFormError(null);
   };
 
   // Handle inline role input change
@@ -388,7 +385,7 @@ const EmployeeList = () => {
     !employees || employees.length === 0 || employees.every((e) => !e?.id);
 
   return (
-    <div className=" min-h-[100vh] w-full bg-white p-4 rounded-lg shadow">
+    <div className="min-h-[100vh] w-full bg-white p-4 rounded-lg shadow">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold">Employee List</h3>
         <button
@@ -414,8 +411,49 @@ const EmployeeList = () => {
           <tbody>
             {employees.map((employee) => (
               <tr key={employee.id} className="border-b">
-                <td className="p-2 border-r border-gray-300">
-                  {employee.name}
+                <td
+                  className="p-2 border-r border-gray-300 relative" // Fixed: Added relative positioning
+                  onMouseEnter={() => setHoveredEmployeeId(employee.id)}
+                  onMouseLeave={() => {
+                    setHoveredEmployeeId(null);
+                    setSelectedTaskId("");
+                  }}
+                >
+                  <div className="flex items-center space-x-2">
+                    <span>{employee.name}</span>
+                  </div>
+
+                  {hoveredEmployeeId === employee.id && (
+                    <div className="absolute left-0 top-full mt-2 w-64 bg-white border rounded shadow-lg z-10">
+                      {tasks.length === 0 ? (
+                        <p className="p-2 text-gray-500">No unassigned tasks available</p>
+                      ) : (
+                        <>
+                          <select
+                            value={selectedTaskId}
+                            onChange={(e) => setSelectedTaskId(e.target.value)}
+                            className="w-full p-2 border-b focus:outline-none"
+                          >
+                            <option value="">Select a task to assign</option>
+                            {tasks.map((task) => (
+                              // Fixed: Changed Option to option
+                              <option key={task.id} value={task.id}>
+                                {task.title}
+                              </option>
+                            ))}
+                          </select>
+                          {selectedTaskId && (
+                            <button
+                              onClick={() => handleAssignTask(employee.name, selectedTaskId)}
+                              className="w-full p-2 bg-[#60A5FA] text-white hover:bg-blue-600"
+                            >
+                              Assign
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
                 </td>
                 <td className="p-2 border-r border-gray-300">
                   {editingRoleId === employee.id ? (
@@ -427,7 +465,6 @@ const EmployeeList = () => {
                         className="p-1 border rounded focus:outline-none focus:ring-2 focus:ring-[#60A5FA]"
                         placeholder="Enter new role"
                       />
-                 
                       <button
                         onClick={() => handleSaveRole(employee.id)}
                         className="text-green-500 hover:text-green-700"
@@ -453,9 +490,7 @@ const EmployeeList = () => {
                     </div>
                   )}
                 </td>
-                <td className="p-2 border-r border-gray-300">
-                  {employee.email}
-                </td>
+                <td className="p-2 border-r border-gray-300">{employee.email}</td>
                 <td className="p-2 flex space-x-2">
                   <button
                     onClick={() => handleEdit(employee)}
@@ -478,8 +513,8 @@ const EmployeeList = () => {
 
       {/* Modal for adding/editing employees */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center overflow-auto"> {/* Fixed: Added overflow-auto */}
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg"> {/* Fixed: Changed max-w-md to max-w-lg */}
             <h3 className="text-lg font-semibold mb-4">
               {formData.id ? "Edit Employee" : "Add Employee"}
             </h3>
@@ -507,12 +542,9 @@ const EmployeeList = () => {
                   required
                 />
               </div>
-              {/* Password field for new employees */}
               {!formData.id && (
                 <div className="mb-4">
-                  <label className="block text-sm font-medium mb-1">
-                    Password
-                  </label>
+                  <label className="block text-sm font-medium mb-1">Password</label>
                   <input
                     type="password"
                     name="password"
@@ -525,7 +557,6 @@ const EmployeeList = () => {
               )}
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">Role</label>
-               
                 <input
                   type="text"
                   name="role"

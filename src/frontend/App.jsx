@@ -25,7 +25,7 @@ const App = () => {
       pauseOnFocusLoss
       draggable
       pauseOnHover
-    />   {/* Add ToastContainer here */}
+    />   
       <Routes>
         {/* Public login route */}
         <Route path="/" element={<LoginForm />} />

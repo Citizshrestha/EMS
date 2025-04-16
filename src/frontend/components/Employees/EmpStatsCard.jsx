@@ -1,38 +1,34 @@
-import React from 'react'
+import React from 'react';
 
 const EmpStatsCard = () => {
   return (
-    <div className='flex h-[10rem]  w-full gap-10 '>
-        <div 
-        className='bg-red-600 h-[60%] w-[16rem] text-white text-left px-7 py-2 rounded-xl'
-        >
-            <h2 className='font-bold text-4xl py-1'>1</h2>
-            <span className='text-xl '>New Task</span>
-        </div>
-        <div text-white
-        className='bg-emerald-600 h-[60%] text-white w-[16rem] text-left px-7 py-2 rounded-xl'
-
-        >
-            <h2 className='font-bold text-4xl py-1'>3</h2>
-            <span className='text-xl '>Completed Task</span>
-        </div>
-        <div 
-        className='bg-blue-500 text-white h-[60%] w-[16rem] text-left px-7 py-2 rounded-xl'
-
-        >
-            <h2 className='font-bold text-4xl py-1'>0</h2>
-            <span className='text-xl '>Accpeted Task</span>
-        </div>
-        <div 
-        className='bg-yellow-500 text-white h-[60%] w-[16rem] text-left px-7 py-2 rounded-xl'
-
-        >
-            <h2 className='font-bold text-4xl py-1'>1</h2>
-            <span className='text-xl '>Failed Task</span>
-        </div>
-     
+    <div className="flex flex-wrap space-x-8 gap-8">
+      <div
+        className="bg-red-500 h-32 w-64 text-white text-left px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+      >
+        <h2 className="font-bold text-5xl mb-2">1</h2>
+        <span className="text-lg font-medium">New Task</span>
+      </div>
+      <div
+        className="bg-emerald-500 h-32 w-64 text-white text-left px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+      >
+        <h2 className="font-bold text-5xl mb-2">3</h2>
+        <span className="text-lg font-medium">Completed Task</span>
+      </div>
+      <div
+        className="bg-blue-500 h-32 w-64 text-white text-left px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+      >
+        <h2 className="font-bold text-5xl mb-2">0</h2>
+        <span className="text-lg font-medium">Accepted Task</span>
+      </div>
+      <div
+        className="bg-yellow-500 h-32 w-64 text-white text-left px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+      >
+        <h2 className="font-bold text-5xl mb-2">1</h2>
+        <span className="text-lg font-medium">Failed Task</span>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default EmpStatsCard
+export default EmpStatsCard;

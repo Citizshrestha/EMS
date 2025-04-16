@@ -1,6 +1,7 @@
-// src/App.jsx
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify'; // Import ToastContainer
+import 'react-toastify/dist/ReactToastify.css'; // Import react-toastify CSS
 
 import LoginForm from './components/auth/LoginForm';
 import AdminDashboard from './components/Dashboard/AdminDashboard';
@@ -12,10 +13,19 @@ import ProtectedRoute from './components/protectedRoute/ProtectedRoute';
 import Layout from './components/common/Layout';
 
 const App = () => {
- 
-
   return (
     <BrowserRouter>
+        <ToastContainer
+      position="top-center"
+      autoClose={3000}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
+    />   {/* Add ToastContainer here */}
       <Routes>
         {/* Public login route */}
         <Route path="/" element={<LoginForm />} />
@@ -54,7 +64,7 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-        <Route
+          <Route
             path="/settings"
             element={
               <ProtectedRoute allowNonAdmin={true} allowedRoles={['admin']}>

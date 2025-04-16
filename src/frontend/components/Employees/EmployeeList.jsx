@@ -7,7 +7,6 @@ import {
 
 const EmployeeList = () => {
   const [employees, setEmployees] = useState([]);
-  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,8 +20,7 @@ const EmployeeList = () => {
   const [formError, setFormError] = useState(null);
   const [editingRoleId, setEditingRoleId] = useState(null);
   const [newRole, setNewRole] = useState("");
-  const [hoveredEmployeeId, setHoveredEmployeeId] = useState(null);
-  const [selectedTaskId, setSelectedTaskId] = useState("");
+
 
   // Fetch employees and tasks on component mount
   useEffect(() => {
@@ -51,32 +49,13 @@ const EmployeeList = () => {
 
         setEmployees(validEmployees);
 
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError) {
-          throw userError;
-        }
-        if (!user) {
-          throw new Error("User not authenticated");
-        }
+   
 
-        // Fixed: Changed SupabaseClient to supabase
-        const { data: taskData, error: taskError } = await supabase
-          .from("tasks")
-          .select("id, title")
-          .eq("user_id", user.id)
-          .is("assigned_to", null)
-          .eq("status", "pending");
-
-        if (taskError) {
-          throw taskError;
-        }
-
-        setTasks(taskData || []);
+       
       } catch (error) {
         setError("Failed to fetch employees: " + error.message);
         // Fixed: Reset state on error to avoid stale data
         setEmployees([]);
-        setTasks([]);
       } finally {
         setLoading(false);
       }
@@ -89,7 +68,10 @@ const EmployeeList = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this employee?")) {
       try {
-        const { error } = await supabase.from("profiles").delete().eq("id", id);
+        const { error } = await supabase
+              .from("profiles")
+              .delete()
+              .eq("id", id);
 
         if (error) {
           throw error;
@@ -110,43 +92,7 @@ const EmployeeList = () => {
     }
   };
 
-  // Handle Assign Tasks
-  const handleAssignTask = async (empName, taskId) => {
-    try {
-      const { data, error } = await supabase
-        .from("tasks")
-        .update({ assigned_to: empName, status: "pending" })
-        .eq("id", taskId)
-        .select();
 
-      if (error) {
-        throw error;
-      }
-
-      if (!data || data.length === 0) {
-        throw new Error("Task Assignment failed: No data returned");
-      }
-
-      // Fixed: Refetch tasks to ensure state consistency
-      const { data: taskData, error: taskError } = await supabase
-        .from("tasks")
-        .select("id, title")
-        .eq("user_id", (await supabase.auth.getUser()).data.user.id)
-        .is("assigned_to", null)
-        .eq("status", "pending");
-
-      if (taskError) {
-        throw taskError;
-      }
-
-      setTasks(taskData || []);
-      setHoveredEmployeeId(null);
-      setSelectedTaskId("");
-      alert("Task assigned successfully");
-    } catch (err) {
-      alert("Error assigning task: " + err.message);
-    }
-  };
 
   // Open the modal for adding a new employee
   const handleAddEmployee = () => {
@@ -412,48 +358,13 @@ const EmployeeList = () => {
             {employees.map((employee) => (
               <tr key={employee.id} className="border-b">
                 <td
-                  className="p-2 border-r border-gray-300 relative" // Fixed: Added relative positioning
-                  onMouseEnter={() => setHoveredEmployeeId(employee.id)}
-                  onMouseLeave={() => {
-                    setHoveredEmployeeId(null);
-                    setSelectedTaskId("");
-                  }}
+                  className="p-2 border-r border-gray-300 relative" 
                 >
                   <div className="flex items-center space-x-2">
                     <span>{employee.name}</span>
                   </div>
 
-                  {hoveredEmployeeId === employee.id && (
-                    <div className="absolute left-0 top-full mt-2 w-64 bg-white border rounded shadow-lg z-10">
-                      {tasks.length === 0 ? (
-                        <p className="p-2 text-gray-500">No unassigned tasks available</p>
-                      ) : (
-                        <>
-                          <select
-                            value={selectedTaskId}
-                            onChange={(e) => setSelectedTaskId(e.target.value)}
-                            className="w-full p-2 border-b focus:outline-none"
-                          >
-                            <option value="">Select a task to assign</option>
-                            {tasks.map((task) => (
-                              // Fixed: Changed Option to option
-                              <option key={task.id} value={task.id}>
-                                {task.title}
-                              </option>
-                            ))}
-                          </select>
-                          {selectedTaskId && (
-                            <button
-                              onClick={() => handleAssignTask(employee.name, selectedTaskId)}
-                              className="w-full p-2 bg-[#60A5FA] text-white hover:bg-blue-600"
-                            >
-                              Assign
-                            </button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  )}
+              
                 </td>
                 <td className="p-2 border-r border-gray-300">
                   {editingRoleId === employee.id ? (

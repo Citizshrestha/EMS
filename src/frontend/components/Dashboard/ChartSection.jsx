@@ -17,11 +17,11 @@ const ChartSection = () => {
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow min-h-[1000px]">
-      <h3 className="text-lg font-semibold mb-4">Employee Activity</h3>
-      <div className="h-full w-full min-h-[500px] bg-gray-200 flex items-center justify-center">
+    <div className="bg-teal-700 h-[600px] p-4 rounded-lg shadow ">
+      <h3 className="text-lg text-white font-semibold mb-4">Employee Activity</h3>
+      <div className=" w-full h-[500px] py-3 bg-red-100 flex flex-col items-center justify-center">
         <Line data={data} options={{ maintainAspectRatio: false }} />
-        <p className="text-gray-500">Chart Placeholder (e.g., Line Chart)</p>
+        <p className="text-black ">Chart Placeholder (e.g., Line Chart)</p>
       </div>
     </div>
   );

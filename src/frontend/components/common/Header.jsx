@@ -75,7 +75,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow p-4 flex items-center justify-between">
+    <header className="bg-white shadow mt-[-12px] p-4 flex items-center justify-between">
       <div className="flex-1 max-w-md">
         <input
           type="text"

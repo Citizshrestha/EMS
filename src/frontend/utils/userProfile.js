@@ -11,7 +11,7 @@ import { auth, db } from "../../backend/services/supabaseClient";
 
               const {data, err} = await db
                 .from('profiles')
-                .select('name,role,avatarurl')
+                .select('id,name,role,avatarurl')
                 .eq('id',user.id)
                 .single()
 

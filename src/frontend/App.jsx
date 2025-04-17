@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify'; // Import ToastContainer
 import 'react-toastify/dist/ReactToastify.css'; // Import react-toastify CSS
@@ -7,6 +6,7 @@ import LoginForm from './components/auth/LoginForm';
 import AdminDashboard from './components/Dashboard/AdminDashboard';
 import EmployeeDashboard from './components/Dashboard/EmployeeDashboard';
 import EmployeeList from './components/Employees/EmployeeList';
+import EmpProfile from './components/Employees/EmpProfile'; // Import EmpProfile
 import Report from './components/Report';
 import Setting from './components/Setting';
 import ProtectedRoute from './components/protectedRoute/ProtectedRoute';
@@ -15,17 +15,17 @@ import Layout from './components/common/Layout';
 const App = () => {
   return (
     <BrowserRouter>
-        <ToastContainer
-      position="top-center"
-      autoClose={3000}
-      hideProgressBar={false}
-      newestOnTop={false}
-      closeOnClick
-      rtl={false}
-      pauseOnFocusLoss
-      draggable
-      pauseOnHover
-    />   
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <Routes>
         {/* Public login route */}
         <Route path="/" element={<LoginForm />} />
@@ -69,6 +69,15 @@ const App = () => {
             element={
               <ProtectedRoute allowNonAdmin={true} allowedRoles={['admin']}>
                 <Setting />
+              </ProtectedRoute>
+            }
+          />
+          {/* New route for employee profile */}
+          <Route
+            path="/profile/:id"
+            element={
+              <ProtectedRoute allowNonAdmin={true} allowedRoles={['admin', 'employee']}>
+                <EmpProfile />
               </ProtectedRoute>
             }
           />

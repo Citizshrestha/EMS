@@ -6,12 +6,14 @@ import CreateTask from './CreateTask';
 
 const AdminDashboard = () => {
   return (
-    <div className="flex-1 flex flex-col min-h-screen">
+    <div className="flex flex-col h-screen"> 
       <Header />
-      <main className="p-6 flex-1 overflow-y-auto ">
+      <main className="flex-1 overflow-y-auto p-6"> 
         <StatsCard />
-        <div className="grid h-[70px] grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <div className="mt-6">
           <ChartSection />
+        </div>
+        <div className="mt-6">
           <CreateTask />
         </div>
       </main>

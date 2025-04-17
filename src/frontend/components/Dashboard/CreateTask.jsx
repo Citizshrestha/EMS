@@ -18,25 +18,23 @@ const CreateTask = () => {
     const [fetchLoading, setFetchLoading] = useState(true);
 
     useEffect(() => {
-      const fetchEmployees = async () => {
-         try {
-            const { data, error } = await supabase
+        const fetchEmployees = async () => {
+            try {
+                const { data, error } = await supabase
                     .from('profiles')
                     .select('id, name')
                     .neq('role', 'admin');
 
-            if (error) {
-                throw error;
+                if (error) throw error;
+                setEmployees(data || []);
+            } catch (err) {
+                setFetchError(err);
+                console.error('Data fetch error');
+            } finally {
+                setFetchLoading(false);
             }
-            setEmployees(data || []);
-         } catch (err) {
-            setFetchError(err);
-            console.error('Data fetch error');
-         } finally {
-            setFetchLoading(false);
-         }
-      };
-      fetchEmployees();
+        };
+        fetchEmployees();
     }, []);
 
     const handleFormChange = (e) => {
@@ -63,7 +61,6 @@ const CreateTask = () => {
 
         try {
             const { data: userData, error: userError } = await supabase.auth.getUser();
-
             if (userError) throw userError;
             const user = userData?.user;
 
@@ -91,7 +88,14 @@ const CreateTask = () => {
             }
 
             toast.success("Task created successfully!");
-            setFormData({ title: "", description: "", dueDate: "", priority: "Low", assigned_to: "", category: "" });
+            setFormData({
+                title: "",
+                description: "",
+                dueDate: "",
+                priority: "Low",
+                assigned_to: "",
+                category: ""
+            });
         } catch (error) {
             toast.error(error.message || "An unexpected error occurred.");
             console.error("Error creating task:", error);
@@ -101,78 +105,90 @@ const CreateTask = () => {
     };
 
     if (fetchError) return <div className="p-4 text-red-500">{fetchError}</div>;
-    if (fetchLoading) return <div className="p-4">Loading...</div>;
+    if (fetchLoading) return <div className="p-4 text-gray-600">Loading...</div>;
 
     return (
-        <div className="bg-white p-4 rounded-lg shadow min-h-[800px] overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-4">Create New Task</h3>
+        <div className="max-w-2xl mx-auto bg-white p-8 rounded-3xl shadow-lg border border-gray-200">
+            <h2 className="text-2xl font-bold mb-6 text-center text-blue-600">Create a New Task</h2>
 
-            <form onSubmit={handleFormSubmit}>
-                <div className="mb-4">
-                    <label className="block text-sm font-medium mb-1">Title</label>
-                    <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleFormChange}
-                        className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#60A5FA]"
-                        required
-                        placeholder="Enter task title"
-                    />
-                </div>
+            <form onSubmit={handleFormSubmit} className="space-y-5">
+                {[
+                    { label: 'Title', name: 'title', type: 'text', placeholder: 'Enter task title' },
+                    { label: 'Due Date', name: 'dueDate', type: 'date' },
+                ].map(({ label, name, type, placeholder }) => (
+                    <div key={name}>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+                        <input
+                            type={type}
+                            name={name}
+                            value={formData[name]}
+                            onChange={handleFormChange}
+                            placeholder={placeholder}
+                            className="w-full px-4 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                            required={name === 'title' || name === 'dueDate'}
+                            disabled={formLoading}
+                        />
+                    </div>
+                ))}
 
-                <div className="mb-4">
-                    <label className="block text-sm font-medium mb-1">Description</label>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                     <textarea
                         name="description"
                         value={formData.description}
                         onChange={handleFormChange}
-                        className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#60A5FA]"
-                        placeholder="Enter task description"
-                        rows="3"
+                        rows="4"
+                        placeholder="Describe the task"
+                        className="w-full px-4 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
                     />
                 </div>
 
-                <div className="mb-4">
-                    <label className="block text-sm font-medium mb-1">Due Date</label>
-                    <input
-                        type="date"
-                        name="dueDate"
-                        value={formData.dueDate}
-                        onChange={handleFormChange}
-                        className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#60A5FA]"
-                        disabled={formLoading}
-                        required
-                    />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                        <select
+                            name="priority"
+                            value={formData.priority}
+                            onChange={handleFormChange}
+                            className="w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                        >
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                        <select
+                            name="category"
+                            value={formData.category}
+                            onChange={handleFormChange}
+                            required
+                            disabled={formLoading}
+                            className="w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                        >
+                            <option value="">Select a category</option>
+                            <option value="dev">Development</option>
+                            <option value="design">Design</option>
+                            <option value="marketing">Marketing</option>
+                            <option value="sales">Sales</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div className="mb-4">
-                    <label className="block text-sm font-medium mb-1">Priority</label>
-                    <select
-                        name="priority"
-                        value={formData.priority}
-                        onChange={handleFormChange}
-                        className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#60A5FA]"
-                        disabled={formLoading}
-                    >
-                        <option value="Low">Low</option>
-                        <option value="Medium">Medium</option>
-                        <option value="High">High</option>
-                    </select>
-                </div>
-
-                <div className="mb-4">
-                    <label className="block text-sm font-medium mb-1">Assigned to</label>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Assigned to</label>
                     <select
                         name="assigned_to"
                         value={formData.assigned_to}
                         onChange={handleFormChange}
-                        className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#60A5FA]"
-                        disabled={formLoading}
                         required
+                        disabled={formLoading}
+                        className="w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
                     >
                         <option value="">Select an employee</option>
-                        {employees.map((emp) => (
+                        {employees.map(emp => (
                             <option key={emp.id} value={emp.id}>
                                 {emp.name}
                             </option>
@@ -180,43 +196,20 @@ const CreateTask = () => {
                     </select>
                 </div>
 
-                <div className="mb-4">
-                    <label className="block text-sm font-medium mb-1">Category</label>
-                    <select
-                        name="category"
-                        value={formData.category}
-                        onChange={handleFormChange}
-                        className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#60A5FA]"
-                        disabled={formLoading}
-                        required
-                    >
-                        <option value="">Select a Category</option>
-                        <option value="dev">dev</option>
-                        <option value="design">design</option>
-                        <option value="marketing">marketing</option>
-                        <option value="sales">sales</option>
-                    </select>
-                </div>
-
-                <div className="flex justify-end space-x-2">
+                <div className="flex justify-end gap-3 pt-4">
                     <button
                         type="button"
-                        onClick={() => setFormData({ 
-                            title: "", 
-                            description: "", 
-                            dueDate: "", 
-                            priority: "Low",
-                            assigned_to: "",
-                            category: "",
+                        onClick={() => setFormData({
+                            title: "", description: "", dueDate: "", priority: "Low", assigned_to: "", category: ""
                         })}
-                        className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                        className="px-4 py-2 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100 transition-all"
                         disabled={formLoading}
                     >
                         Reset
                     </button>
                     <button
                         type="submit"
-                        className="px-4 py-2 bg-[#60A5FA] text-white rounded hover:bg-blue-600 disabled:bg-blue-300"
+                        className="px-6 py-2 rounded-xl text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 shadow-md transition-all disabled:opacity-60"
                         disabled={formLoading}
                     >
                         {formLoading ? "Creating..." : "Create Task"}

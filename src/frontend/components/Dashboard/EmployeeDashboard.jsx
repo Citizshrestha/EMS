@@ -15,7 +15,7 @@ const AdminDashboard = () => {
         <Header />
         <main className="mt-4">
           <EmpStatsCard/>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 space-x-2 gap-6 mt-6">
              <TaskList/>
           </div>
         </main>

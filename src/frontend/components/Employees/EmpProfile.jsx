@@ -14,7 +14,11 @@ const EmpProfile = () => {
   const { avatarurl, name, role, email } = employee;
 
   const handleClose = () => {
-    navigate("/employees"); // Navigate back to the employee list
+    if (role === 'admin'){
+      navigate('/employees')
+    } else {
+      navigate('/employee-dashboard')
+    }
   };
 
   return (

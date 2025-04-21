@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import backgroundImage from '@assets/bg-img.jpg';
+import backgroundImage from '../../../assets/loginPageImg.avif';
 import logoImg from '@assets/logo-img.jpg';
 import { supabase } from '@backend/services/supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -8,23 +8,19 @@ const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-  
 
   const submitHandler = (e) => {
     e.preventDefault();
-    console.log(email, '\n', password);
     handleLogin(email, password);
   };
 
   const handleLogin = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({email,password,});
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      console.error('Login error: ', error.message);
       alert('Login failed: ' + error.message);
     } else {
       const userId = data.user.id;
-
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
@@ -32,14 +28,9 @@ const LoginForm = () => {
         .single();
 
       if (profileError) {
-        console.error('Error fetching roles: ', profileError.message);
         navigate('/login');
       } else {
-        const path =
-          profile?.role === 'admin' ? '/admin-dashboard' : '/employee-dashboard';
-        console.log(
-          `Directing to ${profile?.role === 'admin' ? 'admin' : 'emp'} page`
-        );
+        const path = profile?.role === 'admin' ? '/admin-dashboard' : '/employee-dashboard';
         navigate(path || '/login');
       }
     }
@@ -50,22 +41,22 @@ const LoginForm = () => {
       className="flex items-center justify-center h-screen w-screen bg-cover bg-center"
       style={{ backgroundImage: `url(${backgroundImage})` }}
     >
-      <div className="bg-[#60A5FA] rounded-3xl shadow-lg w-full max-w-sm p-10 text-center">
+      <div className="bg-white/10 backdrop-blur-xs rounded-3xl shadow-2xl p-10 w-full max-w-md text-center border border-white/20">
         <div
-          className="w-8 h-8 bg-cover bg-center bg-white rounded-md flex items-center justify-center mx-auto mb-6"
+          className="w-12 h-12 bg-cover bg-center rounded-full mx-auto mb-4 border-2 border-white"
           style={{ backgroundImage: `url(${logoImg})` }}
         ></div>
-        <h1 className="text-white text-2xl font-bold mb-8 tracking-tight">
-          Employee Management System
+        <h1 className="text-blue-500 text-3xl font-semibold mb-4 tracking-wide">
+          Employee Management
         </h1>
-        <form onSubmit={submitHandler}>
+        <p className="text-white/70 text-sm mb-6">Login to your account</p>
+        <form onSubmit={submitHandler} className="flex flex-col gap-4">
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 mb-4 bg-white rounded-lg text-gray-600 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder-gray-400"
-            aria-label="email"
+            className="w-full p-3 rounded-lg bg-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400"
             autoComplete="email"
           />
           <input
@@ -73,18 +64,22 @@ const LoginForm = () => {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 mb-6 bg-white rounded-lg text-gray-600 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder-gray-400"
-            aria-label="Password"
+            className="w-full p-3 rounded-lg bg-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400"
             autoComplete="current-password"
           />
           <button
             type="submit"
-            className="px-4 tracking-wide bg-[#FF6B6B] text-white py-3 rounded-lg font-semibold text-sm hover:bg-[#F56565] hover:scale-105 transition-all duration-200"
+            className=" bg-gradient-to-r from-blue-500 to-blue-600 hover:to-blue-700 text-white font-bold py-3  rounded-lg shadow-md transition-transform hover:scale-105 duration-200"
           >
             Login
           </button>
+          <div className="text-right text-white/60 text-sm hover:underline cursor-pointer">
+            Forgot Password?
+          </div>
         </form>
       </div>
+
+     
     </div>
   );
 };
